@@ -22,13 +22,22 @@ def planner_node(state: AgentState) -> dict:
     """Δημιουργεί το αρχικό πλάνο."""
     print("\n [Planner] Γράφω το πλάνο...")
     
-    system_prompt = """Είσαι ένας έξυπνος Planner Agent. 
-    Σπάσε το αίτημα του χρήστη σε λογικά βήματα. 
-    Διαθέσιμα εργαλεία: 'web_search', 'calculator', 'file_reader'.
-    Αν ένα βήμα δεν χρειάζεται εργαλείο (π.χ. απλή σύνθεση πληροφοριών), βάλε tool='none'.
-    Επίστρεψε ΜΟΝΟ το δομημένο πλάνο."""
+    # 1. Φτιάχνουμε το string του ιστορικού (ΜΝΗΜΗ)
+    history_str = ""
+    for msg in state.get("chat_history", []):
+        history_str += f"{msg['role']}: {msg['content']}\n"
     
-    # Epistrefei JSON
+    # 2. Το προσθέτουμε στο System Prompt σου
+    system_prompt = f"""Είσαι ένας έξυπνος Planner Agent. 
+Σπάσε το αίτημα του χρήστη σε λογικά βήματα. 
+Διαθέσιμα εργαλεία: 'web_search', 'calculator', 'file_reader'.
+Αν ένα βήμα δεν χρειάζεται εργαλείο (π.χ. απλή σύνθεση πληροφοριών), βάλε tool='none'.
+Επίστρεψε ΜΟΝΟ το δομημένο πλάνο.
+
+Ιστορικό προηγούμενων συζητήσεων (Context):
+{history_str}"""
+    
+    # Epistrefei JSON με ασφάλεια (Η δική σου δομή!)
     structured_llm = llm.with_structured_output(PlanOutput)
     
     plan_result = structured_llm.invoke([
@@ -123,18 +132,36 @@ def executor_node(state: AgentState) -> dict:
 
 
 def finalizer_node(state: AgentState) -> dict:
-    """Συνθέτει την τελική απάντηση με βάση τα αποτελέσματα."""
-    print("[Finalizer] Συνθέτω την τελική απάντηση...")
+    print("\n [Finalizer] Συνθέτω την τελική απάντηση...")
     
-    summary_prompt = f"""Το αρχικό ερώτημα ήταν: '{state['input']}'.
-    Εδώ είναι τα βήματα που εκτελέστηκαν και τα αποτελέσματά τους:
-    {state['plan']}
+    # 1. Φτιάχνουμε το string του ιστορικού (ΜΝΗΜΗ)
+    history_str = ""
+    for msg in state.get("chat_history", []):
+        history_str += f"{msg['role']}: {msg['content']}\n"
+
+    # 2. Φτιάχνουμε το string των αποτελεσμάτων
+    steps_results = "\n".join([f"Βήμα {s['step_id']} ({s['description']}): {s.get('result', 'No result')}" for s in state["plan"]])
     
-    Γράψε την τελική, φιλική και χρήσιμη απάντηση για τον χρήστη."""
-    print("[Finalizer] Στέλνω το prompt στην OpenAI... περιμένω...")
+    # 3. Το System Prompt με τα νέα δεδομένα
+    system_prompt = f"""Είσαι ο Finalizer Agent.
+Διάβασε το ιστορικό της συζήτησης, το αίτημα του χρήστη και τα αποτελέσματα των βημάτων.
+Σύνθεσε μια τελική, κατανοητή και χρήσιμη απάντηση.
 
-    final_response = llm.invoke(summary_prompt).content
+Ιστορικό Συζήτησης (Context):
+{history_str}
 
-    print("[Finalizer] Η OpenAI απάντησε επιτυχώς!")
+Αποτελέσματα Εκτέλεσης:
+{steps_results}
 
-    return {"final_response": final_response}
+Κανόνες:
+1. Απάντησε ΑΥΣΤΗΡΑ στα Ελληνικά.
+2. Χρησιμοποίησε Markdown για μορφοποίηση (bold, λίστες) για να είναι ευανάγνωστα.
+3. Μην αναφέρεις ρητά τα "βήματα" ή τα "εργαλεία", απλά δώσε την τελική απάντηση στον χρήστη."""
+
+    # Κλήση στο απλό LLM (όχι το structured, γιατί εδώ θέλουμε ελεύθερο κείμενο)
+    response = llm.invoke([
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": state["input"]}
+    ])
+    
+    return {"final_response": response.content}

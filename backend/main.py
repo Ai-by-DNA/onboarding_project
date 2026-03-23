@@ -10,9 +10,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 
 
+
 # Import to schema kai ton agent
 from api.schemas import ChatRequest
 from core.graph import app as agent_app
+
+MEMORY_STORE = {}
 
 app = FastAPI(title="Agentic Planner API", version="1.0.0")
 
@@ -34,45 +37,54 @@ async def chat_stream(request: ChatRequest):
     """
     
     async def event_generator():
+        thread_id = request.thread_id or "default"
+        
+        # 1. Δημιουργία ή φόρτωση μνήμης για αυτόν τον χρήστη
+        if thread_id not in MEMORY_STORE:
+            MEMORY_STORE[thread_id] = []
+            
+        # Παίρνουμε μόνο τα τελευταία 20 μηνύματα (10 exchanges) για να μην σκάσει το API
+        recent_history = MEMORY_STORE[thread_id][-20:]
+
         initial_state = {
             "input": request.message,
+            "chat_history": recent_history,  # Δίνουμε τη μνήμη στον Agent
             "plan": [],
             "current_step_index": 0,
             "final_response": ""
         }
 
+        final_answer = ""
+
         try:
-            # To agent_app.stream() trexei komvo komvo kai leei thn katastash kathe se vhma
             async for output in agent_app.astream(initial_state):
-                
                 for node_name, state_update in output.items():
                     
                     if node_name == "planner":
-                        # Stelno to plano
-                        print("📡 [Server] Στέλνω το Πλάνο στη React!") # <-- ΝΕΟ
                         yield {
                             "event": "plan_generated",
                             "data": json.dumps({"plan": state_update["plan"]}, ensure_ascii=False)
                         }
                         
                     elif node_name == "executor":
-                        print("📡 [Server] Στέλνω update για το Βήμα στη React!")
-                        # Stelno to ananeomeno plano
                         yield {
                             "event": "step_executed",
                             "data": json.dumps({"plan": state_update["plan"]}, ensure_ascii=False)
                         }
                         
                     elif node_name == "finalizer":
-                        # Stelno thn telikh apanthsh
-                        print("📡 [Server] Στέλνω την Τελική Απάντηση στη React!")
+                        final_answer = state_update["final_response"]
                         yield {
                             "event": "final_response",
-                            "data": json.dumps({"response": state_update["final_response"]}, ensure_ascii=False)
+                            "data": json.dumps({"response": final_answer}, ensure_ascii=False)
                         }
                 
-                # Mikro delay gia mellontika UI animations
                 await asyncio.sleep(0.1)
+
+            # 2. Αφού τελειώσει επιτυχώς, αποθηκεύουμε την ανταλλαγή στη Μνήμη!
+            if final_answer:
+                MEMORY_STORE[thread_id].append({"role": "User", "content": request.message})
+                MEMORY_STORE[thread_id].append({"role": "Agent", "content": final_answer})
 
         except Exception as e:
             yield {

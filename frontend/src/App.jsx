@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Send, Loader2, CheckCircle2, Circle, XCircle, BrainCircuit, User } from 'lucide-react';
 import './App.css';
 
-function App() {
+function App() { 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -40,15 +40,15 @@ function App() {
         const { done, value } = await reader.read();
         if (done) break;
         
-        // 1. Διαβάζουμε το κομμάτι
+        // 1. Διαβάζω το κομμάτι
         buffer += decoder.decode(value, { stream: true });
         
-        // 2. ΜΑΓΙΚΟ TRICK: Μετατρέπουμε όλα τα \r\n των Windows σε απλά \n
+        // 2. Μετατρέπω όλα τα \r\n των Windows σε απλά \n
         buffer = buffer.replace(/\r\n/g, '\n');
         
-        // 3. Χωρίζουμε τα events
+        // 3. Χωρίζω τα events
         const parts = buffer.split('\n\n');
-        buffer = parts.pop(); // Κρατάμε το μισοτελειωμένο
+        buffer = parts.pop(); 
 
         for (const part of parts) {
           if (!part.trim()) continue; // Αν είναι άδειο, το αγνοούμε
@@ -57,7 +57,7 @@ function App() {
           let eventType = 'message';
           let dataStr = '';
 
-          // 4. Έξυπνο διάβασμα (δεν μας νοιάζει η σειρά των γραμμών)
+          // 4. (δεν μας νοιάζει η σειρά των γραμμών)
           for (const line of lines) {
             if (line.startsWith('event:')) {
               eventType = line.replace('event:', '').trim();
