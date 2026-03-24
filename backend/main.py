@@ -25,7 +25,7 @@ app = FastAPI(title="Agentic Planner API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Edo tha mpei to URL ths React
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
