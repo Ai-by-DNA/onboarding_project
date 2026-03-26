@@ -23,7 +23,7 @@ workflow.add_node("planner", planner_node)
 workflow.add_node("executor", executor_node)
 workflow.add_node("finalizer", finalizer_node)
 
-# ΝΕΟ: Φτιάχνουμε έναν άδειο κόμβο (Dummy Node) που δεν κάνει τίποτα!
+# Φτιάχνουμε έναν άδειο κόμβο που δεν κάνει τίποτα
 def human_review_node(state: AgentState):
     return state
 workflow.add_node("human_review", human_review_node)
@@ -47,7 +47,7 @@ workflow.add_edge("finalizer", END)
 
 memory = MemorySaver()
 
-# ΝΕΟ: Βάζουμε το φρένο ΜΟΝΟ στον σταθμό ελέγχου! 
+# Βάζουμε το φρένο ΜΟΝΟ στον σταθμό ελέγχου
 app = workflow.compile(
     checkpointer=memory,
     interrupt_before=["human_review"] 

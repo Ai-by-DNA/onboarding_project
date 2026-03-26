@@ -22,12 +22,12 @@ def planner_node(state: AgentState) -> dict:
     """Δημιουργεί το αρχικό πλάνο."""
     print("\n [Planner] Γράφω το πλάνο...")
     
-    # 1. Φτιάχνουμε το string του ιστορικού (ΜΝΗΜΗ)
+    # Φτιάχνουμε το string του ιστορικού
     history_str = ""
     for msg in state.get("chat_history", []):
         history_str += f"{msg['role']}: {msg['content']}\n"
     
-    # 2. Το προσθέτουμε στο System Prompt σου
+    # Το προσθέτουμε στο System Prompt σου
     system_prompt = f"""Είσαι ένας έξυπνος Planner Agent. 
 Σπάσε το αίτημα του χρήστη σε λογικά βήματα. 
 Διαθέσιμα εργαλεία: 'web_search', 'calculator', 'file_reader'.
@@ -134,15 +134,15 @@ def executor_node(state: AgentState) -> dict:
 def finalizer_node(state: AgentState) -> dict:
     print("\n [Finalizer] Συνθέτω την τελική απάντηση...")
     
-    # 1. Φτιάχνουμε το string του ιστορικού (ΜΝΗΜΗ)
+    # Φτιάχνουμε το string του ιστορικού 
     history_str = ""
     for msg in state.get("chat_history", []):
         history_str += f"{msg['role']}: {msg['content']}\n"
 
-    # 2. Φτιάχνουμε το string των αποτελεσμάτων
+    # Φτιάχνουμε το string των αποτελεσμάτων
     steps_results = "\n".join([f"Βήμα {s['step_id']} ({s['description']}): {s.get('result', 'No result')}" for s in state["plan"]])
     
-    # 3. Το System Prompt με τα νέα δεδομένα
+    # Το System Prompt με τα νέα δεδομένα
     system_prompt = f"""Είσαι ο Finalizer Agent.
 Διάβασε το ιστορικό της συζήτησης, το αίτημα του χρήστη και τα αποτελέσματα των βημάτων.
 Σύνθεσε μια τελική, κατανοητή και χρήσιμη απάντηση.
@@ -154,7 +154,7 @@ def finalizer_node(state: AgentState) -> dict:
 {steps_results}
 
 Κανόνες:
-1. Απάντησε ΑΥΣΤΗΡΑ στα Ελληνικά.
+1. Απάντησε στην γλωσσα που σε ρωτανε.
 2. Χρησιμοποίησε Markdown για μορφοποίηση (bold, λίστες) για να είναι ευανάγνωστα.
 3. Μην αναφέρεις ρητά τα "βήματα" ή τα "εργαλεία", απλά δώσε την τελική απάντηση στον χρήστη."""
 

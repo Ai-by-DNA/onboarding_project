@@ -12,7 +12,7 @@ function App() {
   const [showLogs, setShowLogs] = useState(false);
   const [threadId] = useState(() => 'thread-' + Math.random().toString(36).substr(2, 9));
   
-  // NEO: States για το Editable Plan
+  // States για το Editable Plan
   const [isWaitingForApproval, setIsWaitingForApproval] = useState(false);
   const [editablePlan, setEditablePlan] = useState([]);
 
@@ -21,7 +21,7 @@ function App() {
   };
   useEffect(() => { scrollToBottom(); }, [messages]);
 
-  // Βοηθητική συνάρτηση για το SSE Parsing (για να μην επαναλαμβανόμαστε)
+  // Βοηθητική συνάρτηση για το SSE Parsing 
   const processStream = async (reader, decoder, isResume = false) => {
     let buffer = '';
     while (true) {
@@ -111,12 +111,12 @@ function App() {
     } catch (error) {
       console.error("Network Error:", error);
     } finally {
-      // ΑΥΤΟ ΕΛΕΙΠΕ: Σταματάει το loading είτε πετύχει είτε αποτύχει!
+      // Σταματάει το loading είτε πετύχει είτε αποτύχει!
       setIsLoading(false); 
     }
   };
 
-  // NEO: Συνάρτηση για να στείλουμε το ΕΓΚΕΚΡΙΜΕΝΟ πλάνο πίσω
+  // Συνάρτηση για να στείλουμε το ΕΓΚΕΚΡΙΜΕΝΟ πλάνο πίσω
   const handleResume = async () => {
     setIsLoading(true);
     setIsWaitingForApproval(false);
@@ -133,7 +133,6 @@ function App() {
     } catch (error) {
       console.error("Resume Error:", error);
     } finally {
-      // ΑΥΤΟ ΕΛΕΙΠΕ ΚΑΙ ΕΔΩ!
       setIsLoading(false);
     }
   };
@@ -176,7 +175,7 @@ function App() {
 
       <div className="messages-area">
         
-        {/* --- ΝΕΟ: Η Οθόνη Υποδοχής (Empty State) --- */}
+        {/* --- Η Οθόνη Υποδοχής (Empty State) --- */}
         <div className={`welcome-screen ${messages.length > 0 ? 'hidden' : ''}`}>
           <div className="welcome-logo-container">
             <BrainCircuit size={48} strokeWidth={1.5} />
@@ -205,7 +204,7 @@ function App() {
                         )}
                     </div>
 
-                    {/* Εδώ γίνεται η μαγεία: Αν περιμένουμε έγκριση, δείξε input fields */}
+                    {/* Αν περιμένουμε έγκριση, δείξε input fields */}
                     {(isLastMessage && isWaitingForApproval ? editablePlan : msg.plan).map((step, sIdx) => (
                       <div key={sIdx} className="plan-step">
                         <div className="step-status">{getStatusIcon(step.status)}</div>
@@ -261,7 +260,7 @@ function App() {
       <div className="input-area">
         <form onSubmit={handleSend} className="input-form">
           <input 
-            type="text" placeholder="Πες μου τι να κάνω..." 
+            type="text" placeholder="Πες μου τι θελεις να κάνω..." 
             value={input} onChange={(e) => setInput(e.target.value)}
             disabled={isLoading || isWaitingForApproval}
           />

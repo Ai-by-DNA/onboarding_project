@@ -59,6 +59,7 @@ body {
   font-weight: 700;
   background: linear-gradient(90deg, #60a5fa, #a78bfa); /* Χρωματιστό κείμενο */
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
 }
@@ -73,7 +74,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  position: relative; /* ΝΕΟ: Σημαντικό για το απόλυτο κεντράρισμα του Welcome Screen */
+  position: relative; /* Σημαντικό για το απόλυτο κεντράρισμα του Welcome Screen */
 }
 
 /* Animation για να μπαίνουν ομαλά τα μηνύματα */
@@ -114,7 +115,7 @@ body {
 }
 
 .avatar.user { 
-  /* ΝΕΟ: Ζωντανό, premium Μωβ/Βιολετί */
+  /* Ζωντανό, premium Μωβ/Βιολετί */
   background: linear-gradient(135deg, #8b5cf6, #6d28d9); 
   box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3); /* Μωβ λάμψη */
 }
@@ -138,7 +139,7 @@ body {
 }
 
 .message.user .message-content {
-  /* ΝΕΟ: Κομψό Space Grey / Zinc gradient */
+  /* Κομψό Space Grey / Zinc gradient */
   background: linear-gradient(135deg, #3f3f46, #27272a); 
   color: #ffffff;
   border-radius: 18px;
@@ -167,7 +168,7 @@ body {
   margin-bottom: 12px;
   border-bottom: 1px solid #27272a;
   padding-bottom: 10px;
-  gap: 20px; /* ΝΕΟ: Βάζει "τοίχο" και αέρα ανάμεσα στον τίτλο και το ταμπελάκι */
+  gap: 20px; /* Βάζει "τοίχο" και αέρα ανάμεσα στον τίτλο και το ταμπελάκι */
 }
 
 .plan-title {
@@ -207,8 +208,8 @@ body {
   font-size: 0.95rem;
   transition: border-color 0.2s, box-shadow 0.2s; /* Αφαιρέσαμε το 'all' για να μην κολλάει το ύψος */
   line-height: 1.5;
-  resize: none; /* ΝΕΟ: Τέρμα το τράβηγμα από τον χρήστη! */
-  overflow: hidden; /* ΝΕΟ: Κρύβει το scrollbar */
+  resize: none; /* Τέρμα το τράβηγμα από τον χρήστη! */
+  overflow: hidden; /* Κρύβει το scrollbar */
 }
 
 .edit-plan-input:focus {
@@ -291,7 +292,7 @@ body {
   transition: all 0.3s ease;
 }
 
-.input-form input::placeholder { color: #71717a; }
+.input-form input::placeholder { color: #ccccdb; }
 
 .input-form input:focus {
   border-color: #60a5fa;
@@ -390,7 +391,7 @@ body {
   opacity: 0 !important;
   transform: translate(-50%, -70%) scale(0.95) !important;
   pointer-events: none;
-  animation: none !important; /* ΑΥΤΟ ΛΥΝΕΙ ΤΟ ΠΡΟΒΛΗΜΑ: Σκοτώνει το "κλείδωμα" της εμφάνισης */
+  animation: none !important; 
 }
 
 @keyframes welcomeFadeIn {

@@ -9,7 +9,7 @@ import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
-from pydantic import BaseModel # NEO: Το χρειαζόμαστε για το νέο endpoint
+from pydantic import BaseModel # Το χρειαζόμαστε για το νέο endpoint
 
 # Import to schema kai ton agent
 from api.schemas import ChatRequest
@@ -28,7 +28,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ΝΕΟ: Schema για να δεχόμαστε το διορθωμένο πλάνο
+# Schema για να δεχόμαστε το διορθωμένο πλάνο
 class ResumeRequest(BaseModel):
     thread_id: str
     plan: list  # Λίστα με τα βήματα του πλάνου
@@ -43,14 +43,14 @@ async def chat_stream(request: ChatRequest):
     async def event_generator():
         thread_id = request.thread_id or "default"
         
-        # NEO: Η "ταυτότητα" της μνήμης για το LangGraph
+        # Η ταυτότητα της μνήμης για το LangGraph
         config = {"configurable": {"thread_id": thread_id}}
         
-        # 1. Δημιουργία ή φόρτωση custom μνήμης για αυτόν τον χρήστη
+        # Δημιουργία ή φόρτωση custom μνήμης για αυτόν τον χρήστη
         if thread_id not in MEMORY_STORE:
             MEMORY_STORE[thread_id] = []
             
-        # Παίρνουμε μόνο τα τελευταία 20 μηνύματα (10 exchanges) για να μην σκάσει το API
+        # Παίρνουμε μόνο τα τελευταία 20 μηνύματα 
         recent_history = MEMORY_STORE[thread_id][-20:]
 
         initial_state = {
@@ -64,7 +64,7 @@ async def chat_stream(request: ChatRequest):
         final_answer = ""
 
         try:
-            # NEO: Προσθέσαμε το config=config για να ενεργοποιηθεί η Μνήμη
+            # Προσθέσαμε το config=config για να ενεργοποιηθεί η Μνήμη
             async for output in agent_app.astream(initial_state, config=config):
                 for node_name, state_update in output.items():
 
@@ -105,19 +105,19 @@ async def chat_stream(request: ChatRequest):
                 
                 await asyncio.sleep(0.1)
 
-            # --- ΝΕΟ: Ο ΑΝΙΧΝΕΥΤΗΣ ΦΡΕΝΟΥ ---
+            # --- ΑΝΙΧΝΕΥΤΗΣ ΦΡΕΝΟΥ ---
             current_state = agent_app.get_state(config)
             
-            # ΑΛΛΑΓΗ ΕΔΩ: Τώρα περιμένουμε να κολλήσει στο human_review
+            # Τώρα περιμένουμε να κολλήσει στο human_review
             if current_state.next and "human_review" in current_state.next:
                 yield {
                     "event": "waiting_for_user",
                     "data": json.dumps({"plan": current_state.values.get("plan", [])}, ensure_ascii=False)
                 }
-                return # Κόβουμε το stream εδώ! Το γράφημα περιμένει τον χρήστη.
+                return # Κόβουμε το stream εδώ, το γράφημα περιμένει τον χρήστη.
             # ---------------------------------
 
-            # 2. Αφού τελειώσει επιτυχώς, αποθηκεύουμε την ανταλλαγή στη Μνήμη
+            # Αφού τελειώσει επιτυχώς, αποθηκεύουμε την ανταλλαγή στη Μνήμη
             if final_answer:
                 MEMORY_STORE[thread_id].append({"role": "User", "content": request.message})
                 MEMORY_STORE[thread_id].append({"role": "Agent", "content": final_answer})
@@ -131,13 +131,13 @@ async def chat_stream(request: ChatRequest):
     return EventSourceResponse(event_generator())
 
 
-# --- ΝΕΟ ENDPOINT: Η ΣΥΝΕΧΕΙΑ (RESUME) ---
+# --- ΝΕΟ ENDPOINT ---
 @app.post("/chat/resume")
 async def chat_resume(request: ResumeRequest):
     async def resume_generator():
         config = {"configurable": {"thread_id": request.thread_id}}
         
-        # 1. Αλλάζουμε τη μνήμη "αθόρυβα" (χωρίς as_node)
+        # Αλλάζουμε τη μνήμη 
         agent_app.update_state(
             config, 
             {"plan": request.plan, "current_step_index": 0}
@@ -145,7 +145,7 @@ async def chat_resume(request: ResumeRequest):
         
         final_answer = ""
         try:
-            # 2. ΤΟ ΜΥΣΤΙΚΟ: Περνάμε None! Αυτό σημαίνει "Ξεπάγωσε και συνέχισε!"
+            # Περνάμε None αυτό σημαίνει "Ξεπάγωσε και συνέχισε"
             async for output in agent_app.astream(None, config=config):
                 for node_name, state_update in output.items():
                     log_id = str(uuid.uuid4())
